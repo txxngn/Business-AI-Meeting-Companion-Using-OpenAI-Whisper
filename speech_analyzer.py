@@ -13,6 +13,9 @@ from ibm_watson_machine_learning.foundation_models import Model
 from ibm_watson_machine_learning.foundation_models.extensions.langchain import WatsonxLLM
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
 
+
+#######------------- LLM-------------####
+# initiate LLM instance, this can be IBM WatsonX, huggingface, or OpenAI instance
 my_credentials = {
     "url"    : "https://us-south.ml.cloud.ibm.com"
 }
@@ -30,8 +33,11 @@ LLAMA2_model = Model(
 
 llm = WatsonxLLM(LLAMA2_model)  
 
-#######------------- Prompt Template-------------####
 
+
+
+#######------------- Prompt Template-------------####
+# This template is structured based on LLAMA2. If using other LLMs, feel free to remove the tags
 temp = """
 <s><<SYS>>
 List the key points with details from the context: 
@@ -45,6 +51,11 @@ pt = PromptTemplate(
 
 prompt_to_LLAMA2 = LLMChain(llm=llm, prompt=pt)
 
+
+
+
+
+
 #######------------- Speech2text-------------####
 
 def transcript_audio(audio_file):
@@ -56,15 +67,21 @@ def transcript_audio(audio_file):
     )
     # Transcribe the audio file and return the result
     transcript_txt = pipe(audio_file, batch_size=8)["text"]
+    # run the chain to merge transcript text with the template and send it to the LLM
     result = prompt_to_LLAMA2.run(transcript_txt)
 
     return result
+
+
+
+
 
 #######------------- Gradio-------------####
 
 audio_input = gr.Audio(sources="upload", type="filepath")
 output_text = gr.Textbox()
 
+# Create the Gradio interface with the function, inputs, and outputs
 iface = gr.Interface(fn= transcript_audio, 
                     inputs= audio_input, outputs= output_text, 
                     title= "Audio Transcription App",
